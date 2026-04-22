@@ -82,21 +82,131 @@
     }
 
     .gift-box {
-      font-size: 6rem;
-      animation: giftPulse 1.6s ease-in-out infinite;
-      filter: drop-shadow(0 8px 24px rgba(233,30,140,.4));
-      margin-bottom: 1.5rem;
-      transition: transform 0.3s;
+      --open: 0;
+      position: relative;
+      width: min(56vw, 210px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1.1rem;
+      animation: giftPulse 1.9s ease-in-out infinite;
+      filter: drop-shadow(0 12px 24px rgba(233,30,140,.3));
+      transition: transform 0.18s ease;
     }
 
-    #gift-screen:hover .gift-box {
+    .gift-lid {
+      width: 86%;
+      height: min(14vw, 54px);
+      border-radius: 0.9rem;
+      background: linear-gradient(180deg, #ff87ba 0%, #f23a93 100%);
+      border: 2px solid rgba(255,255,255,.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateY(calc(var(--open) * -16px)) rotate(calc(var(--open) * -8deg));
+      transform-origin: bottom center;
+      transition: transform 0.18s ease;
+      z-index: 2;
+      box-shadow: 0 7px 14px rgba(233,30,140,.28);
+    }
+
+    .gift-bow {
+      font-size: min(7.2vw, 30px);
+      filter: drop-shadow(0 2px 4px rgba(194,24,91,.25));
+    }
+
+    .gift-body {
+      width: 100%;
+      height: min(30vw, 126px);
+      margin-top: -0.45rem;
+      border-radius: 1rem;
+      background: linear-gradient(180deg, #ffe57f 0%, #ffd54f 100%);
+      border: 2px solid rgba(255,255,255,.75);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 16px rgba(194,24,91,.18);
+    }
+
+    .gift-body::before,
+    .gift-body::after {
+      content: '';
+      position: absolute;
+      background: #d81b60;
+      opacity: 0.95;
+    }
+
+    .gift-body::before {
+      width: 26px;
+      height: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .gift-body::after {
+      height: 24px;
+      width: 100%;
+      top: 42%;
+      transform: translateY(-50%);
+    }
+
+    .gift-mini {
+      position: absolute;
+      width: min(9vw, 34px);
+      height: min(9vw, 34px);
+      object-fit: contain;
+      background: rgba(255,255,255,.92);
+      border-radius: 999px;
+      border: 1px solid #f8bbd0;
+      padding: 3px;
+      box-shadow: 0 2px 7px rgba(194,24,91,.2);
+      z-index: 3;
+    }
+
+    .gift-mini.hk {
+      top: 14%;
+      left: 9%;
+    }
+
+    .gift-mini.snoopy {
+      right: 9%;
+      bottom: 12%;
+    }
+
+    .gift-tap-count {
+      margin-top: 0.52rem;
+      background: rgba(255,255,255,.88);
+      border: 1px solid #f8bbd0;
+      border-radius: 999px;
+      padding: 0.22rem 0.72rem;
+      font-size: clamp(0.74rem, 2.8vw, 0.86rem);
+      color: #ad1457;
+      letter-spacing: 0.02em;
+      font-weight: 400;
+    }
+
+    .gift-box.press {
+      transform: scale(0.95);
+    }
+
+    .gift-box.opening {
       animation: none;
-      transform: scale(1.15) rotate(-5deg);
+    }
+
+    .gift-box.opening .gift-lid {
+      animation: giftLidOpen 0.55s ease forwards;
     }
 
     @keyframes giftPulse {
-      0%, 100% { transform: scale(1) rotate(-3deg); }
-      50%       { transform: scale(1.12) rotate(3deg); }
+      0%, 100% { transform: translateY(0) scale(1); }
+      50%      { transform: translateY(-5px) scale(1.03); }
+    }
+
+    @keyframes giftLidOpen {
+      0%   { transform: translateY(calc(var(--open) * -16px)) rotate(calc(var(--open) * -8deg)); }
+      100% { transform: translateY(-42px) rotate(-16deg); }
     }
 
     .gift-hint {
@@ -659,7 +769,16 @@
   <!-- Pantalla de regalo -->
   <div id="gift-screen" onclick="openGift()">
     <div class="gift-sparkles" id="sparkles-bg"></div>
-    <div class="gift-box" id="gift-box">🎁</div>
+    <div class="gift-box" id="gift-box" role="button" aria-label="Abrir regalo">
+      <div class="gift-lid">
+        <span class="gift-bow">🎀</span>
+      </div>
+      <div class="gift-body">
+        <img src="https://media.tenor.com/GrU2xczpUhsAAAAj/hello-kitty-hearts.gif" alt="Hello Kitty" class="gift-mini hk" />
+        <img src="https://media.tenor.com/oQ4nx-q7desAAAAj/snoopy-cute.gif" alt="Snoopy" class="gift-mini snoopy" />
+      </div>
+      <div class="gift-tap-count" id="gift-tap-count">Toca para abrir • 0/5</div>
+    </div>
   </div>
 
   <div id="opening-kitty" aria-hidden="true">
@@ -798,14 +917,26 @@
       giftTaps += 1;
       const remaining = REQUIRED_TAPS - giftTaps;
       const box = document.getElementById('gift-box');
+      const tapCount = document.getElementById('gift-tap-count');
 
       // Feedback visual en cada toque
-      box.style.transform = 'scale(1.18) rotate(4deg)';
-      setTimeout(() => { box.style.transform = ''; }, 160);
+      box.classList.remove('press');
+      void box.offsetWidth;
+      box.classList.add('press');
+      setTimeout(() => box.classList.remove('press'), 170);
+
+      const progress = Math.min(giftTaps, REQUIRED_TAPS);
+      box.style.setProperty('--open', (progress / REQUIRED_TAPS).toFixed(2));
+      if (tapCount) {
+        tapCount.textContent = remaining > 0
+          ? `Toca para abrir • ${progress}/${REQUIRED_TAPS}`
+          : 'Abriendo sorpresa...';
+      }
 
       if (remaining > 0) return;
 
       giftOpened = true;
+      box.classList.add('opening');
 
       // 1. Esconder pantalla regalo
       document.getElementById('gift-screen').classList.add('hide');
