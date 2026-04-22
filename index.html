@@ -102,8 +102,8 @@
     }
 
     #opening-kitty img {
-      width: min(58vw, 360px);
-      max-width: 82vw;
+      width: min(76vw, 520px);
+      max-width: 92vw;
       filter: drop-shadow(0 14px 28px rgba(233,30,140,.35));
       transform: scale(0.7);
     }
@@ -262,8 +262,8 @@
       padding: 9px 1.1rem 1.4rem;
       background: repeating-linear-gradient(
         white 0px,
-        white 27.5px,
-        #fce4ec 27.5px,
+        white 28px,
+        #fdf1f5 28px,
         #fce4ec 29px
       );
     }
@@ -289,6 +289,50 @@
       color: #c2185b;
       text-align: center;
       margin-bottom: 0;
+    }
+
+    .kitty-clickable {
+      cursor: pointer;
+      transition: transform 0.22s ease, filter 0.22s ease;
+    }
+
+    .kitty-clickable:hover {
+      transform: scale(1.08) rotate(-2deg);
+      filter: drop-shadow(0 5px 14px rgba(233,30,140,.45));
+    }
+
+    .kitty-boop {
+      animation: kittyBoop 0.55s ease;
+    }
+
+    .kitty-note {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid #f8bbd0;
+      border-radius: 999px;
+      padding: 0.25rem 0.58rem;
+      font-size: 0.74rem;
+      color: #c2185b;
+      font-family: 'Playfair Display', serif;
+      transform: translate(-50%, -50%);
+      animation: kittyNoteFloat 1s ease-out forwards;
+      box-shadow: 0 8px 16px rgba(233,30,140,.18);
+      white-space: nowrap;
+    }
+
+    @keyframes kittyBoop {
+      0%   { transform: scale(1) rotate(0deg); }
+      30%  { transform: scale(1.16) rotate(-6deg); }
+      60%  { transform: scale(0.95) rotate(4deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    @keyframes kittyNoteFloat {
+      0%   { opacity: 0; transform: translate(-50%, -32%) scale(0.82); }
+      20%  { opacity: 1; transform: translate(-50%, -48%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -160%) scale(1); }
     }
 
     /* Footer flores */
@@ -464,7 +508,7 @@
       }
 
       #opening-kitty img {
-        width: min(74vw, 300px);
+        width: min(92vw, 420px);
       }
     }
   </style>
@@ -478,7 +522,7 @@
   </div>
 
   <div id="opening-kitty" aria-hidden="true">
-    <img src="https://media.tenor.com/GrU2xczpUhsAAAAj/hello-kitty-hearts.gif" alt="Hello Kitty grande" />
+    <img src="https://media.tenor.com/GrU2xczpUhsAAAAj/hello-kitty-hearts.gif" alt="Hello Kitty grande" class="kitty-clickable" data-kitty="true" />
   </div>
 
   <!-- Botón de música -->
@@ -487,8 +531,8 @@
     <div class="music-waves"><span></span><span></span><span></span><span></span></div>
     <span id="music-label">Reproducir</span>
   </button>
-  <audio id="audio" loop>
-    <source src="Lana%20Del%20Rey.mp3" type="audio/mpeg" />
+  <audio id="audio" loop preload="auto">
+    <source src="Lana Del Rey.mp3" type="audio/mpeg" />
   </audio>
 
   <!-- Heart burst container -->
@@ -502,9 +546,9 @@
 
     <!-- Cabecera Hello Kitty -->
     <div class="hk-card-header">
-      <img src="https://media.tenor.com/GrU2xczpUhsAAAAj/hello-kitty-hearts.gif" alt="Hello Kitty" class="hk-corner-img"/>
+      <img src="https://media.tenor.com/GrU2xczpUhsAAAAj/hello-kitty-hearts.gif" alt="Hello Kitty" class="hk-corner-img kitty-clickable" data-kitty="true"/>
       <div class="hk-logo">💝 Feliz Cumpleaños 💝</div>
-      <img src="https://media.tenor.com/GrU2xczpUhsAAAAj/hello-kitty-hearts.gif" alt="Hello Kitty" class="hk-corner-img hk-flip"/>
+      <img src="https://media.tenor.com/GrU2xczpUhsAAAAj/hello-kitty-hearts.gif" alt="Hello Kitty" class="hk-corner-img hk-flip kitty-clickable" data-kitty="true"/>
     </div>
 
     <!-- Cuerpo -->
@@ -578,7 +622,7 @@
 
   <!-- GIFs decorativos esquinas -->
   <div class="gif-wrapper left">
-    <img src="https://media.tenor.com/GrU2xczpUhsAAAAj/hello-kitty-hearts.gif" alt="Hello Kitty" />
+    <img src="https://media.tenor.com/GrU2xczpUhsAAAAj/hello-kitty-hearts.gif" alt="Hello Kitty" class="kitty-clickable" data-kitty="true" />
   </div>
   <div class="gif-wrapper right">
     <img src="https://media.tenor.com/oQ4nx-q7desAAAAj/snoopy-cute.gif" alt="Snoopy" />
@@ -691,20 +735,39 @@
     const label = document.getElementById('music-label');
     let playing  = false;
 
-    function toggleMusic() {
+    async function toggleMusic() {
+      const btn = document.getElementById('music-btn');
+
       if (playing) {
         audio.pause();
         icon.textContent  = '🎵';
         label.textContent = 'Reproducir';
-        document.getElementById('music-btn').classList.remove('playing');
+        btn.classList.remove('playing');
+        playing = false;
       } else {
-        audio.play().catch(() => {});
-        icon.textContent  = '';
-        label.textContent = 'Pausar';
-        document.getElementById('music-btn').classList.add('playing');
+        try {
+          audio.muted = false;
+          audio.volume = 0.9;
+          await audio.play();
+          icon.textContent  = '';
+          label.textContent = 'Pausar';
+          btn.classList.add('playing');
+          playing = true;
+        } catch (_err) {
+          icon.textContent  = '🎵';
+          label.textContent = 'Toca otra vez';
+          btn.classList.remove('playing');
+          playing = false;
+        }
       }
-      playing = !playing;
     }
+
+    audio.addEventListener('error', function() {
+      icon.textContent  = '🎵';
+      label.textContent = 'Sin audio';
+      document.getElementById('music-btn').classList.remove('playing');
+      playing = false;
+    });
 
     // ── Heart burst al tocar/hacer clic ──
     document.addEventListener('click', function(e) {
@@ -722,6 +785,42 @@
         container.appendChild(el);
         setTimeout(() => el.remove(), 1400);
       }
+    });
+
+    // ── Interaccion especial al tocar Hello Kitty ──
+    document.addEventListener('click', function(e) {
+      const kitty = e.target.closest('[data-kitty="true"]');
+      if (!kitty) return;
+
+      kitty.classList.remove('kitty-boop');
+      void kitty.offsetWidth;
+      kitty.classList.add('kitty-boop');
+
+      const phrases = [
+        'miau miau',
+        'bonita vibes',
+        'feliz cumple',
+        'mas amor',
+        'kitty magic'
+      ];
+
+      const note = document.createElement('div');
+      note.className = 'kitty-note';
+      note.textContent = phrases[Math.floor(Math.random() * phrases.length)];
+      note.style.left = e.clientX + 'px';
+      note.style.top = e.clientY + 'px';
+      document.body.appendChild(note);
+      setTimeout(() => note.remove(), 1100);
+
+      confetti({
+        particleCount: 22,
+        spread: 55,
+        startVelocity: 22,
+        gravity: 0.8,
+        scalar: 0.85,
+        origin: { x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight },
+        colors: ['#f48fb1', '#ffd6e7', '#ffffff', '#f9a8d4']
+      });
     });
 
     // ── Reveal de párrafos al hacer scroll ──
