@@ -181,6 +181,18 @@
       filter: drop-shadow(0 2px 8px rgba(244,143,177,.6));
     }
 
+    .sticker.cake .cake-emoji {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid #f8bbd0;
+      box-shadow: 0 5px 14px rgba(233,30,140,.2);
+      filter: drop-shadow(0 2px 8px rgba(244,143,177,.55));
+      line-height: 1;
+    }
+
     @keyframes floatUp {
       0%   { transform: translateY(0) rotate(-8deg) scale(0.8); opacity: 0; }
       8%   { opacity: 1; }
@@ -697,7 +709,7 @@
         <!-- Sección sin rayas: título y decoración -->
         <div class="hk-paper-top">
           <div class="badge">✨ Hoy es tu día ✨</div>
-          <h1>Feliz Cumpleaños,<br/>mi Bonita 🌸</h1>
+          <h1>Feliz Cumpleaños!!! 🌸</h1>
           <p class="sub">Que este añito nuevo sea todo lo bonito que tú eres</p>
           <div class="divider">🎂</div>
         </div>
@@ -839,25 +851,39 @@
       let turn = 0;
 
       function addSticker() {
-        const src = turn % 2 === 0 ? HK_GIF : SNOOPY_GIF;
-        turn++;
+        const kindPool = ['hk', 'snoopy', 'cake', 'cake'];
+        const kind = kindPool[Math.floor(Math.random() * kindPool.length)];
 
         const el  = document.createElement('div');
-        el.className = 'sticker';
+        el.className = kind === 'cake' ? 'sticker cake' : 'sticker';
         el.style.left = (5 + Math.random() * 88) + 'vw';
 
         const dur = isMobile ? (8 + Math.random() * 6) : (9 + Math.random() * 7);
         el.style.animationDuration = dur + 's';
         el.style.animationDelay    = (Math.random() * 1.5) + 's';
 
-        const size = isMobile ? (30 + Math.random() * 18) : (42 + Math.random() * 28);
+        if (kind === 'cake') {
+          const cake = document.createElement('span');
+          const cakeSize = isMobile ? (26 + Math.random() * 12) : (34 + Math.random() * 16);
+          const cakeFaces = ['🎂', '🎂', '🎂', '🧁', '🍰'];
+          cake.className = 'cake-emoji';
+          cake.textContent = cakeFaces[Math.floor(Math.random() * cakeFaces.length)];
+          cake.style.width = cakeSize + 'px';
+          cake.style.height = cakeSize + 'px';
+          cake.style.fontSize = Math.round(cakeSize * 0.68) + 'px';
+          el.appendChild(cake);
+        } else {
+          turn++;
+          const src = turn % 2 === 0 ? HK_GIF : SNOOPY_GIF;
+          const size = isMobile ? (30 + Math.random() * 18) : (42 + Math.random() * 28);
 
-        const img = document.createElement('img');
-        img.src = src;
-        img.alt = turn % 2 === 0 ? 'Hello Kitty' : 'Snoopy';
-        img.style.width = size + 'px';
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = turn % 2 === 0 ? 'Hello Kitty' : 'Snoopy';
+          img.style.width = size + 'px';
+          el.appendChild(img);
+        }
 
-        el.appendChild(img);
         container.appendChild(el);
 
         setTimeout(() => el.remove(), (dur + 3) * 1000);
@@ -913,7 +939,7 @@
     // ── Heart burst al tocar/hacer clic ──
     document.addEventListener('click', function(e) {
       if (e.target.closest('#gift-screen') || e.target.closest('#music-btn')) return;
-      const emojis = ['💕','💗','💖','💝','🌸','✨','🎀'];
+      const emojis = ['💕','💗','💖','💝','🌸','✨','🎀','🎂','🧁'];
       const container = document.getElementById('hearts-container');
       for (let i = 0; i < 5; i++) {
         const el = document.createElement('div');
